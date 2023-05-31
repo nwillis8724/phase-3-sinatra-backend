@@ -7,12 +7,27 @@ class ApplicationController < Sinatra::Base
     developers.to_json(include: :games)
   end
 
+  get '/developers/:id' do
+    developers = Developer.find(params[:id])
+    developers.to_json(include: :games)
+  end
+
   post '/developers' do
     developer = Developer.create(
       developer: params[:developer]
     )
-    developer.to_json
+    developer.to_json(include: :games)
   end
+
+  delete '/developers/:id' do
+    dev = Developer.find(params[:id])
+    if dev
+      dev.destroy
+      { message: 'Dev successfully deleted' }.to_json
+    else
+      { error: 'Dev not found' }.to_json
+    end
+  end 
 
 
   get '/games' do
@@ -22,30 +37,32 @@ class ApplicationController < Sinatra::Base
 
   get '/games/:id' do
     game = Game.find(params[:id])
-    game.to_json
+    game.to_json(include: :developer)
   end
 
   post '/games' do
     developer = Developer.find_or_create_by(developer: params[:developer])
-    game = Game.create(
+    game = developer.games.create(
       name: params[:name],
       genre: params[:genre],
-      developer_id: developer.id,
+      
       price: params[:price]
     )
-    game.developer = developer
-    game.to_json
+    game.to_json(include: :developer)
   end
 
-  patch '/games' do
-    game = Game.find_by(name: params[:name])
-    developer = Developer.find_by(developer: params[:developer_name])
+  patch '/games/:id' do
+    game = Game.find(params[:id])
+    developer = Developer.find_or_create_by(developer: params[:developer])
+
     game.update(
       name: params[:name],
       genre: params[:genre],
       developer_id: developer.id,
       price: params[:price]
     )
+    # binding.pry
+    game.to_json(include: :developer)
   end
 
   delete '/games/:id' do
