@@ -45,7 +45,6 @@ class ApplicationController < Sinatra::Base
     game = developer.games.create(
       name: params[:name],
       genre: params[:genre],
-      
       price: params[:price]
     )
     game.to_json(include: :developer)
